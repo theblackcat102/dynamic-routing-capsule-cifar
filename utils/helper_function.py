@@ -88,3 +88,27 @@ def plot_log(filename, show=True):
     # fig.savefig('result/log.png')
     if show:
         plt.show()
+
+
+def data_generator(x,y,batch_size):
+    x_train,y_train = x,y
+    from keras.preprocessing.image import ImageDataGenerator
+    datagen = ImageDataGenerator(
+        featurewise_center=False,  # set input mean to 0 over the dataset
+        samplewise_center=False,  # set each sample mean to 0
+        featurewise_std_normalization=False,  # divide inputs by std of the dataset
+        samplewise_std_normalization=False,  # divide each input by its std
+        zca_whitening=False,  # apply ZCA whitening
+        rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
+        width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
+        height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
+        horizontal_flip=True,  # randomly flip images
+        vertical_flip=False)  # randomly flip images
+
+    # Compute quantities required for featurewise normalization
+    # (std, mean, and principal components if ZCA whitening is applied).
+    datagen.fit(x_train)
+    generator = datagen.flow(x_train,y_train,batch_size=batch_size)
+    while True:
+        x,y  = generator.next()
+        yield ([x,y],[y,x])

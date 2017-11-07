@@ -1,5 +1,6 @@
 from keras.layers import (
     Input,
+    Conv2D,
     Activation,
     Dense,
     Flatten,
@@ -12,6 +13,7 @@ from keras.models import Model
 from models.capsule_layers import CapsuleLayer, PrimaryCapsule, Length,Mask
 from keras.layers.normalization import BatchNormalization
 import keras.backend as K
+from keras import optimizers
 from utils.helper_function import load_cifar_10,load_cifar_100
 import numpy as np
 
@@ -23,8 +25,41 @@ def convolution_block(input,kernel_size=8,filters=16,kernel_regularizer=l2(1.e-4
     activation = Activation("relu")(norm)
     return activation    
 
-# why using 512, 1024 Maybe to mimic original 10M params?
 def CapsNet(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024)):
+    conv_filter = 256
+    n_kernel = 24
+    primary_channel =64
+    primary_vector = 8
+
+    target_shape = input_shape
+
+    input = Input(shape=input_shape)
+
+    # TODO: try leaky relu next time
+    conv1 = Conv2D(filters=conv_filter,kernel_size=n_kernel, strides=1, padding='valid', activation='relu',name='conv1',kernel_initializer="he_normal")(input)
+
+    primary_cap = PrimaryCapsule(conv1,dim_vector=8, n_channels=64,kernel_size=9,strides=2,padding='valid')
+
+    routing_layer = CapsuleLayer(num_capsule=n_class, dim_vector=8, num_routing=n_route,name='routing_layer')(primary_cap)
+
+
+    output = Length(name='output')(routing_layer)
+
+    y = Input(shape=(n_class,))
+    masked = Mask()([routing_layer,y])
+    
+    x_recon = Dense(dense_size[0],activation='relu')(masked)
+
+    for i in range(1,len(dense_size)-1):
+        x_recon = Dense(dense_size[i],activation='relu')(x_recon)
+    # Is there any other way to do  
+    x_recon = Dense(target_shape[0]*target_shape[1]*target_shape[2],activation='relu')(x_recon)
+    x_recon = Reshape(target_shape=target_shape,name='output_recon')(x_recon)
+
+    return Model([input,y],[output,x_recon])
+
+# why using 512, 1024 Maybe to mimic original 10M params?
+def CapsNetv2(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024)):
     conv_filter = 64
     n_kernel = 16
     primary_channel =64
@@ -53,8 +88,8 @@ def CapsNet(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024))
     x_recon = Dense(target_shape[0]*target_shape[1]*target_shape[2],activation='relu')(x_recon)
     x_recon = Reshape(target_shape=target_shape,name='output_recon')(x_recon)
 
-    conv_block_2 = convolution_block(routing_layer)
-    b12_sum = add([conv_block_2,conv_block_1])
+    # conv_block_2 = convolution_block(routing_layer)
+    # b12_sum = add([conv_block_2,conv_block_1])
 
     return Model([input,y],[output,x_recon])
 
@@ -76,7 +111,7 @@ def train(epochs=200,batch_size=64,mode=1):
     from keras import callbacks
     from keras.utils.vis_utils import plot_model
     if mode==1:
-        num_classes = 11
+        num_classes = 10
         (x_train,y_train),(x_test,y_test) = load_cifar_10()
     else:
         num_classes = 100
@@ -98,12 +133,20 @@ def train(epochs=200,batch_size=64,mode=1):
 
     plot_model(model, to_file='models/capsule-cifar-'+str(num_classes)+'.png', show_shapes=True)
 
-    model.compile(optimizer='sgd',
+    model.compile(optimizer=optimizers.Adam(lr=0.001),
                   loss=[margin_loss, 'mse'],
-                  loss_weights=[1., 0.0005],
+                  loss_weights=[1., 0.1],
                   metrics={'output_recon':'accuracy','output':'accuracy'})
-    model.fit([x_train, y_train], [y_train, x_train], batch_size=batch_size, epochs=epochs,shuffle=True,
-              validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[log, tb, checkpoint])
+    from utils.helper_function import data_generator
+
+    generator = data_generator(x_train,y_train,batch_size)
+    model.fit_generator(generator,
+                        steps_per_epoch=x_train.shape[0] // batch_size,
+                        validation_data=([x_test, y_test], [y_test, x_test]),
+                        epochs=epochs, verbose=1, max_q_size=100,
+                        callbacks=[log,tb,checkpoint,lr_decay])
+    # model.fit([x_train, y_train], [y_train, x_train], batch_size=batch_size, epochs=epochs,shuffle=True,
+    #           validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[log, tb, checkpoint])
 
 def test(epoch, mode=1):
     import matplotlib.pyplot as plt
