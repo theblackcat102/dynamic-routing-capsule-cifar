@@ -21,6 +21,8 @@ from keras.layers.merge import add
 from keras.layers.normalization import BatchNormalization
 from keras.regularizers import l2
 from keras import backend as K
+from utils.helper_function import load_cifar_10,load_cifar_100
+import numpy as np
 
 
 def _bn_relu(input):
@@ -203,7 +205,7 @@ class ResnetBuilder(object):
 
         # Permute dimension order if necessary
         if K.image_dim_ordering() == 'tf':
-            input_shape = (input_shape[1], input_shape[2], input_shape[0])
+            input_shape = (input_shape[0], input_shape[1], input_shape[2])
 
         # Load function from str if needed.
         block_fn = _get_block(block_fn)
@@ -252,13 +254,69 @@ class ResnetBuilder(object):
     def build_resnet_152(input_shape, num_outputs):
         return ResnetBuilder.build(input_shape, num_outputs, bottleneck, [3, 8, 36, 3])
 
-def train():
+def train(epochs=150,batch_size=32,mode=1):
+    import numpy as np
+    import os
+    from keras import callbacks
+    from keras.utils.vis_utils import plot_model
     import keras
+    from keras.preprocessing.image import ImageDataGenerator
+
+    if mode==1:
+        num_classes = 10
+        (x_train,y_train),(x_test,y_test) = load_cifar_10()
+    else:
+        num_classes = 100
+        (x_train,y_train),(x_test,y_test) = load_cifar_100()
+
+    datagen = ImageDataGenerator(
+        featurewise_center=False,  # set input mean to 0 over the dataset
+        samplewise_center=False,  # set each sample mean to 0
+        featurewise_std_normalization=False,  # divide inputs by std of the dataset
+        samplewise_std_normalization=False,  # divide each input by its std
+        zca_whitening=False,  # apply ZCA whitening
+        rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
+        width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
+        height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
+        horizontal_flip=True,  # randomly flip images
+        vertical_flip=False)  # randomly flip images
+
+    # Compute quantities required for featurewise normalization
+    # (std, mean, and principal components if ZCA whitening is applied).
+    datagen.fit(x_train)
+
 
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
+    '''
+        Total params: 21,311,754
+        Trainable params: 21,296,522
+        Non-trainable params: 15,232
+    '''
     model = ResnetBuilder.build_resnet_18((32,32,3),10)
     model.summary()
     # Let's train the model using RMSprop
     model.compile(loss='categorical_crossentropy',
                 optimizer=opt,
                 metrics=['accuracy'])
+
+    print('x_train shape:', x_train.shape)
+    print(x_train.shape[0], 'train samples')
+    print(x_test.shape[0], 'test samples')
+
+    model.summary()
+    log = callbacks.CSVLogger('results/resnet-cifar-'+str(num_classes)+'-log.csv')
+    tb = callbacks.TensorBoard(log_dir='results/tensorboard-resnet-cifar-'+str(num_classes)+'-logs',
+                               batch_size=batch_size, histogram_freq=True)
+    checkpoint = callbacks.ModelCheckpoint('weights/resnet-cifar-'+str(num_classes)+'weights-{epoch:02d}.h5',
+                                           save_best_only=True, save_weights_only=True, verbose=1)
+    lr_reducer = callbacks.ReduceLROnPlateau(factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
+
+    plot_model(model, to_file='models/resnet-cifar-'+str(num_classes)+'.png', show_shapes=True)
+
+    model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
+                        steps_per_epoch=x_train.shape[0] // batch_size,
+                        validation_data=(x_test, y_test),
+                        epochs=epochs, verbose=1, max_q_size=100,
+                        callbacks=[log,tb,checkpoint,lr_reducer])
+    # model.fit_generator(, batch_size=batch_size, epochs=epochs,shuffle=True,
+    #           validation_data=(x_test, y_test), callbacks=[log, tb, checkpoint])

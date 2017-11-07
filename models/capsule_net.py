@@ -1,29 +1,45 @@
-from keras.layers import Dense, Reshape, Input, Conv2D, Dropout
+from keras.layers import (
+    Input,
+    Activation,
+    Dense,
+    Flatten,
+    Reshape,
+    Dropout
+)
+from keras.layers.merge import add
+from keras.regularizers import l2
 from keras.models import Model
 from models.capsule_layers import CapsuleLayer, PrimaryCapsule, Length,Mask
+from keras.layers.normalization import BatchNormalization
 import keras.backend as K
 from utils.helper_function import load_cifar_10,load_cifar_100
 import numpy as np
 
+
+def convolution_block(input,kernel_size=8,filters=16,kernel_regularizer=l2(1.e-4)):
+    conv2 = Conv2D(filters=filters,kernel_size=kernel_size,kernel_regularizer=kernel_regularizer,
+                    kernel_initializer="he_normal",padding="same")(input)
+    norm = BatchNormalization(axis=3)(conv2)
+    activation = Activation("relu")(norm)
+    return activation    
+
 # why using 512, 1024 Maybe to mimic original 10M params?
 def CapsNet(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024)):
-    conv_filter = 256
-    n_kernel = 24
+    conv_filter = 64
+    n_kernel = 16
     primary_channel =64
-    primary_vector = 8
+    primary_vector = 12
+    capsule_dim_size = 16
 
     target_shape = input_shape
 
     input = Input(shape=input_shape)
 
     # TODO: try leaky relu next time
-    conv1 = Conv2D(filters=conv_filter,kernel_size=n_kernel, strides=1, padding='valid', activation='relu',name='conv1')(input)
-
-    primary_cap = PrimaryCapsule(conv1,dim_vector=8,n_channels=64,kernel_size=9,strides=2,padding='valid')
-
-    routing_layer = CapsuleLayer(num_capsule=n_class,dim_vector=8,num_routing=n_route,name='routing_layer')(primary_cap)
-
-
+    conv_block_1 = convolution_block(input,kernel_size=16,filters=64)
+    primary_cap = PrimaryCapsule(conv_block_1,dim_vector=capsule_dim_size,n_channels=primary_channel,kernel_size=9,strides=2,padding='valid')    
+    # Suppose this act like a max pooling 
+    routing_layer = CapsuleLayer(num_capsule=n_class,dim_vector=capsule_dim_size,num_routing=n_route,name='routing_layer_1')(primary_cap)
     output = Length(name='output')(routing_layer)
 
     y = Input(shape=(n_class,))
@@ -33,10 +49,12 @@ def CapsNet(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024))
 
     for i in range(1,len(dense_size)-1):
         x_recon = Dense(dense_size[i],activation='relu')(x_recon)
-        x_recon = Dropout(0.2)(x_recon)
     # Is there any other way to do  
     x_recon = Dense(target_shape[0]*target_shape[1]*target_shape[2],activation='relu')(x_recon)
     x_recon = Reshape(target_shape=target_shape,name='output_recon')(x_recon)
+
+    conv_block_2 = convolution_block(routing_layer)
+    b12_sum = add([conv_block_2,conv_block_1])
 
     return Model([input,y],[output,x_recon])
 
@@ -101,7 +119,7 @@ def test(epoch, mode=1):
     
     model = CapsNet(input_shape=[32, 32, 3],
                         n_class=num_classes,
-                        n_route=4)
+                        n_route=3)
     model.load_weights('weights/capsule-cifar-'+str(num_classes)+'weights-{:02d}.h5'.format(epoch)) 
     print("Weights loaded, start validation")   
     # model.load_weights('weights/capsule-weights-{:02d}.h5'.format(epoch))    

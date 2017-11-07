@@ -12,8 +12,8 @@ def load_cifar_10():
     x_test = x_test.astype('float32')
     x_train /= 255.0
     x_test /= 255.0    
-    y_train = to_categorical(y_train, num_classes+1)
-    y_test = to_categorical(y_test, num_classes+1)
+    y_train = to_categorical(y_train, num_classes)
+    y_test = to_categorical(y_test, num_classes)
 
     return (x_train,y_train),(x_test,y_test)
 
