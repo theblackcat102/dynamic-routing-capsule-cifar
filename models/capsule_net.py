@@ -15,6 +15,7 @@ from keras.layers.normalization import BatchNormalization
 import keras.backend as K
 from keras import optimizers
 from utils.helper_function import load_cifar_10,load_cifar_100
+from models.capsulenet import CapsNet as CapsNetv1
 import numpy as np
 
 
@@ -29,7 +30,8 @@ def CapsNet(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024))
     conv_filter = 256
     n_kernel = 24
     primary_channel =64
-    primary_vector = 8
+    primary_vector = 9
+    vector_dim = 9
 
     target_shape = input_shape
 
@@ -40,8 +42,7 @@ def CapsNet(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024))
 
     primary_cap = PrimaryCapsule(conv1,dim_vector=8, n_channels=64,kernel_size=9,strides=2,padding='valid')
 
-    routing_layer = CapsuleLayer(num_capsule=n_class, dim_vector=8, num_routing=n_route,name='routing_layer')(primary_cap)
-
+    routing_layer = CapsuleLayer(num_capsule=n_class, dim_vector=vector_dim, num_routing=n_route,name='routing_layer')(primary_cap)
 
     output = Length(name='output')(routing_layer)
 
@@ -50,7 +51,7 @@ def CapsNet(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024))
     
     x_recon = Dense(dense_size[0],activation='relu')(masked)
 
-    for i in range(1,len(dense_size)-1):
+    for i in range(1,len(dense_size)):
         x_recon = Dense(dense_size[i],activation='relu')(x_recon)
     # Is there any other way to do  
     x_recon = Dense(target_shape[0]*target_shape[1]*target_shape[2],activation='relu')(x_recon)
@@ -64,7 +65,7 @@ def CapsNetv2(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024
     n_kernel = 16
     primary_channel =64
     primary_vector = 12
-    capsule_dim_size = 16
+    capsule_dim_size = 8
 
     target_shape = input_shape
 
@@ -74,7 +75,7 @@ def CapsNetv2(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024
     conv_block_1 = convolution_block(input,kernel_size=16,filters=64)
     primary_cap = PrimaryCapsule(conv_block_1,dim_vector=capsule_dim_size,n_channels=primary_channel,kernel_size=9,strides=2,padding='valid')    
     # Suppose this act like a max pooling 
-    routing_layer = CapsuleLayer(num_capsule=n_class,dim_vector=capsule_dim_size,num_routing=n_route,name='routing_layer_1')(primary_cap)
+    routing_layer = CapsuleLayer(num_capsule=n_class,dim_vector=capsule_dim_size*2,num_routing=n_route,name='routing_layer_1')(primary_cap)
     output = Length(name='output')(routing_layer)
 
     y = Input(shape=(n_class,))
@@ -82,10 +83,10 @@ def CapsNetv2(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024
     
     x_recon = Dense(dense_size[0],activation='relu')(masked)
 
-    for i in range(1,len(dense_size)-1):
+    for i in range(1,len(dense_size)):
         x_recon = Dense(dense_size[i],activation='relu')(x_recon)
     # Is there any other way to do  
-    x_recon = Dense(target_shape[0]*target_shape[1]*target_shape[2],activation='relu')(x_recon)
+    x_recon = Dense(np.prod(target_shape),activation='relu')(x_recon)
     x_recon = Reshape(target_shape=target_shape,name='output_recon')(x_recon)
 
     # conv_block_2 = convolution_block(routing_layer)
@@ -116,7 +117,7 @@ def train(epochs=200,batch_size=64,mode=1):
     else:
         num_classes = 100
         (x_train,y_train),(x_test,y_test) = load_cifar_100()
-    model = CapsNet(input_shape=[32, 32, 3],
+    model = CapsNetv1(input_shape=[32, 32, 3],
                         n_class=num_classes,
                         n_route=3)
     print('x_train shape:', x_train.shape)
@@ -154,7 +155,7 @@ def test(epoch, mode=1):
     from utils.helper_function import combine_images
 
     if mode == 1:
-        num_classes =10+1
+        num_classes =10
         _,(x_test,y_test) = load_cifar_10()
     else:
         num_classes = 100

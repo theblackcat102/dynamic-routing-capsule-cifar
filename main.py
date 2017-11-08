@@ -4,5 +4,5 @@ from models.resnet import train as resnet_train
 
 if __name__ == "__main__":
     # resnet_train()
-    capsule_train(150, 32, 1)
-    # capsule_test(19)
+    capsule_train(150, 128, 1)
+    #capsule_test(51)
