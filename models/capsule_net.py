@@ -141,13 +141,12 @@ def train(epochs=200,batch_size=64,mode=1):
     from utils.helper_function import data_generator
 
     generator = data_generator(x_train,y_train,batch_size)
+    # Image generator significantly increase the accuracy and reduce validation loss
     model.fit_generator(generator,
                         steps_per_epoch=x_train.shape[0] // batch_size,
                         validation_data=([x_test, y_test], [y_test, x_test]),
                         epochs=epochs, verbose=1, max_q_size=100,
                         callbacks=[log,tb,checkpoint,lr_decay])
-    # model.fit([x_train, y_train], [y_train, x_train], batch_size=batch_size, epochs=epochs,shuffle=True,
-    #           validation_data=[[x_test, y_test], [y_test, x_test]], callbacks=[log, tb, checkpoint])
 
 def test(epoch, mode=1):
     import matplotlib.pyplot as plt
@@ -161,20 +160,20 @@ def test(epoch, mode=1):
         num_classes = 100
         _,(x_test,y_test) = load_cifar_100()
     
-    model = CapsNet(input_shape=[32, 32, 3],
+    model = CapsNetv1(input_shape=[32, 32, 3],
                         n_class=num_classes,
                         n_route=3)
-    model.load_weights('weights/capsule-cifar-'+str(num_classes)+'weights-{:02d}.h5'.format(epoch)) 
+    model.load_weights('weights/capsule_weights/capsule-cifar-'+str(num_classes)+'weights-{:02d}.h5'.format(epoch)) 
     print("Weights loaded, start validation")   
     # model.load_weights('weights/capsule-weights-{:02d}.h5'.format(epoch))    
     y_pred, x_recon = model.predict([x_test, y_test], batch_size=100)
     print('-'*50)
+    # Test acc: 0.7307
     print('Test acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))/y_test.shape[0])
 
     img = combine_images(np.concatenate([x_test[:50],x_recon[:50]]))
     image = img*255
     Image.fromarray(image.astype(np.uint8)).save("results/real_and_recon.png")
-    print()
     print('Reconstructed images are saved to ./results/real_and_recon.png')
     print('-'*50)
     plt.imshow(plt.imread("results/real_and_recon.png", ))

@@ -320,3 +320,16 @@ def train(epochs=150,batch_size=32,mode=1):
                         callbacks=[log,tb,checkpoint,lr_reducer])
     # model.fit_generator(, batch_size=batch_size, epochs=epochs,shuffle=True,
     #           validation_data=(x_test, y_test), callbacks=[log, tb, checkpoint])
+
+def test():
+    num_classes =10
+    _,(x_test,y_test) = load_cifar_10()
+    model = ResnetBuilder.build_resnet_18((32,32,3),10)
+    epoch = 44
+    model.load_weights('weights/resnet_weights/resnet-cifar-'+str(num_classes)+'weights-{:02d}.h5'.format(epoch)) 
+    print("Weights loaded, start validation")   
+    # model.load_weights('weights/capsule-weights-{:02d}.h5'.format(epoch))    
+    y_pred = model.predict(x_test, batch_size=100)
+    print('-'*50)
+    # Test acc: 0.8231
+    print('Test acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))/y_test.shape[0])
