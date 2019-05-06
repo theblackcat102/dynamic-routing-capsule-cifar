@@ -17,6 +17,12 @@ from keras import optimizers
 from utils.helper_function import load_cifar_10,load_cifar_100
 from models.capsulenet import CapsNet as CapsNetv1
 import numpy as np
+import time as t
+
+def timed(time):
+    time=t.strftime('%H:%M:%S', t.gmtime(time))+str(time%1)[1:4]
+    print('tiempo de descarga')
+    print(time)
 
 
 def convolution_block(input,kernel_size=8,filters=16,kernel_regularizer=l2(1.e-4)):
@@ -142,11 +148,14 @@ def train(epochs=200,batch_size=64,mode=1):
 
     generator = data_generator(x_train,y_train,batch_size)
     # Image generator significantly increase the accuracy and reduce validation loss
+    stat=t.time()
     model.fit_generator(generator,
                         steps_per_epoch=x_train.shape[0] // batch_size,
                         validation_data=([x_test, y_test], [y_test, x_test]),
                         epochs=epochs, verbose=1, max_q_size=100,
                         callbacks=[log,tb,checkpoint,lr_decay])
+    stop=t.time()
+    timed(stop-start)
 
 def test(epoch, mode=1):
     import matplotlib.pyplot as plt
