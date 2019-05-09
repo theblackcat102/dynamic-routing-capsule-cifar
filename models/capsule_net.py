@@ -1,3 +1,11 @@
+import tensorflow as tf
+from keras.backend.tensorflow_backend import set_session
+
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = False
+config.gpu_options.per_process_gpu_memory_fraction = 0.5
+set_session(tf.Session(config=config))
+
 from keras.layers import (
     Input,
     Conv2D,
@@ -140,7 +148,7 @@ def train(epochs=200,batch_size=64,mode=1):
 
     plot_model(model, to_file='models/capsule-cifar-'+str(num_classes)+'.png', show_shapes=True)
 
-    model.compile(optimizer=optimizers.Adam(lr=0.001),
+    model.compile(optimizer=optimizers.Adam(lr=0.0001),
                   loss=[margin_loss, 'mse'],
                   loss_weights=[1., 0.1],
                   metrics={'output_recon':'accuracy','output':'accuracy'})
@@ -148,7 +156,7 @@ def train(epochs=200,batch_size=64,mode=1):
 
     generator = data_generator(x_train,y_train,batch_size)
     # Image generator significantly increase the accuracy and reduce validation loss
-    stat=t.time()
+    start=t.time()
     model.fit_generator(generator,
                         steps_per_epoch=x_train.shape[0] // batch_size,
                         validation_data=([x_test, y_test], [y_test, x_test]),
@@ -172,14 +180,18 @@ def test(epoch, mode=1):
     model = CapsNetv1(input_shape=[32, 32, 3],
                         n_class=num_classes,
                         n_route=3)
-    model.load_weights('weights/capsule_weights/capsule-cifar-'+str(num_classes)+'weights-{:02d}.h5'.format(epoch)) 
+    for e in epoch:
+        model.load_weights('weights/capsule_weights/capsule-cifar-'+str(num_classes)+'weights-{:02d}.h5'.format(e))
+        
+        pass
+     
     print("Weights loaded, start validation")   
     # model.load_weights('weights/capsule-weights-{:02d}.h5'.format(epoch))    
     y_pred, x_recon = model.predict([x_test, y_test], batch_size=100)
     print('-'*50)
     # Test acc: 0.7307
     print('Test acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))/y_test.shape[0])
-
+    np.save('results/acc_{:d}'.format(epoch))
     img = combine_images(np.concatenate([x_test[:50],x_recon[:50]]))
     image = img*255
     Image.fromarray(image.astype(np.uint8)).save("results/real_and_recon.png")
