@@ -129,7 +129,7 @@ def margin_loss(y_true, y_pred):
 
 def train(epochs,batch_size,mode):
     mode=int(mode)
-    if(mode):
+    if(mode==1):
         maske='Cifar10'
     else:
         maske='KTH'
@@ -204,7 +204,7 @@ def test(epoch, mode=1):
     epoch=int(epoch)
     from PIL import Image
     from utils.helper_function import combine_images
-    if(mode):
+    if(mode==1):
         maske='Cifar10'
     else:
         maske='KTH'
