@@ -188,7 +188,7 @@ def train(epochs,batch_size,mode):
     model.fit_generator(generator,
                         steps_per_epoch=x_train.shape[0] // batch_size,
                         validation_data=([x_test, y_test], [y_test, x_test]),
-                        epochs=epochs, verbose=1, max_q_size=100,
+                        epochs=int(epochs), verbose=1, max_q_size=100,
                         callbacks=[log,tb,checkpoint,lr_decay])
     stop=t.time()
     timed(stop-start)
