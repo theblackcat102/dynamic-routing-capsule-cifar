@@ -194,6 +194,7 @@ def train(epochs,batch_size,mode):
     timed(stop-start)
 
 def test(epoch, mode=1):
+    epoch=int(epoch)
     from PIL import Image
     from utils.helper_function import combine_images
     if(mode):
