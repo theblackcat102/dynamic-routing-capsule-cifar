@@ -127,7 +127,10 @@ def train(epochs=200,batch_size=64,mode=1):
     from keras.utils.vis_utils import plot_model
     if mode==1:
         num_classes = 10
-        (x_train,y_train),(x_test,y_test) = load_cifar_10()
+        x_train=np.load('/home/vision/Documentos/kth_img_train.npy')
+        y_train=np.load('/home/vision/Documentos/kth_lab_train.npy')
+        x_test=np.load('/home/vision/Documentos/kth_img_test.npy')
+        y_test=np.load('/home/vision/Documentos/kth_lab_test.npy')
     else:
         num_classes = 100
         (x_train,y_train),(x_test,y_test) = load_cifar_100()
