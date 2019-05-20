@@ -133,6 +133,8 @@ def train(epochs,batch_size,mode):
         maske='Cifar10'
     else:
         maske='KTH'
+    print(maske)
+    _=input('continuar?')
     print(len(os.listdir('weights'+maske+'/')))
     if(len(os.listdir('weights'+maske+'/'))>2):
         print('already trained')
