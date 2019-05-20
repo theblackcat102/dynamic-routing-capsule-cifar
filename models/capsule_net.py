@@ -3,8 +3,9 @@ from keras.backend.tensorflow_backend import set_session
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = False
-config.gpu_options.per_process_gpu_memory_fraction = 0.5
+config.gpu_options.per_process_gpu_memory_fraction = 1
 set_session(tf.Session(config=config))
+import sys
 
 from keras.layers import (
     Input,
@@ -70,7 +71,9 @@ def CapsNet(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024))
     # Is there any other way to do  
     x_recon = Dense(target_shape[0]*target_shape[1]*target_shape[2],activation='relu')(x_recon)
     x_recon = Reshape(target_shape=target_shape,name='output_recon')(x_recon)
-
+    x_recon=tf.layers.conv2d_transpose(x_recon,kernel_size=5,strides=3,filters=64)
+    x_recon=tf.layers.conv2d_transpose(x_recon,kernel_size=5,strides=3,filters=256)
+    x_recon=tf.layers.conv2d_transpose(x_recon,kernel_size=6,strides=2,filters=3)
     return Model([input,y],[output,x_recon])
 
 # why using 512, 1024 Maybe to mimic original 10M params?
@@ -102,7 +105,8 @@ def CapsNetv2(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024
     # Is there any other way to do  
     x_recon = Dense(np.prod(target_shape),activation='relu')(x_recon)
     x_recon = Reshape(target_shape=target_shape,name='output_recon')(x_recon)
-
+    print(x_recon)
+    sys.exit(1)
     # conv_block_2 = convolution_block(routing_layer)
     # b12_sum = add([conv_block_2,conv_block_1])
 
@@ -127,11 +131,20 @@ def train(epochs=200,batch_size=64,mode=1):
     from keras.utils.vis_utils import plot_model
     if mode==1:
         num_classes = 10
-        (x_train,y_train),(x_test,y_test) = load_cifar_10()
+        x_train=np.load('/home/vision/Documentos/kth_img_train.npy')
+        y_train=np.load('/home/vision/Documentos/kth_lab_train.npy')
+        with tf.Session() as sess:
+            y_train=sess.run(tf.one_hot(y_train,10))
+        x_test=np.load('/home/vision/Documentos/kth_img_test.npy')
+        y_test=np.load('/home/vision/Documentos/kth_lab_test.npy')
+        with tf.Session() as sess:
+            y_test=sess.run(tf.one_hot(y_test,10))
+        print(x_train.shape)
+        #sys.exit(1)
     else:
         num_classes = 100
         (x_train,y_train),(x_test,y_test) = load_cifar_100()
-    model = CapsNetv1(input_shape=[32, 32, 3],
+    model = CapsNetv1(input_shape=[200,200, 3],
                         n_class=num_classes,
                         n_route=3)
     print('x_train shape:', x_train.shape)
@@ -180,10 +193,10 @@ def test(epoch, mode=1):
     model = CapsNetv1(input_shape=[32, 32, 3],
                         n_class=num_classes,
                         n_route=3)
-    for e in epoch:
-        model.load_weights('weights/capsule_weights/capsule-cifar-'+str(num_classes)+'weights-{:02d}.h5'.format(e))
+ #   for e in epoch:
+    model.load_weights('weights/capsule-cifar-'+str(num_classes)+'weights-{:02d}.h5'.format(40))
         
-        pass
+    #    pass
      
     print("Weights loaded, start validation")   
     # model.load_weights('weights/capsule-weights-{:02d}.h5'.format(epoch))    
