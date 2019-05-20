@@ -164,9 +164,9 @@ def train(epochs,batch_size,mode):
 
     model.summary()
     if(mode):
-        maske='KTH'
-    else:
         maske='Cifar10'
+    else:
+        maske='KTH'
     log = callbacks.CSVLogger('results'+maske+'/capsule-net-'+str(num_classes)+'-log.csv')
     tb = callbacks.TensorBoard(log_dir='results'+maske+'/tensorboard-capsule-net-'+str(num_classes)+'-logs',
                                batch_size=batch_size, histogram_freq=True)
@@ -197,9 +197,9 @@ def test(epoch, mode=1):
     from PIL import Image
     from utils.helper_function import combine_images
     if(mode):
-        maske='KTH'
-    else:
         maske='Cifar10'
+    else:
+        maske='KTH'
     if mode==1:
         num_classes = 10
         (x_train,y_train),(x_test,y_test) = load_cifar_10()
