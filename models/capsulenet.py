@@ -24,7 +24,7 @@ import numpy as np
 import tensorflow as tf
 import sys
 
-def CapsNet(input_shape, n_class, n_route):
+def CapsNet(input_shape, n_class, n_route,kth=False):
     """
     A Capsule Network on MNIST.
     :param input_shape: data shape, 3d, [width, height, channels]
@@ -36,8 +36,9 @@ def CapsNet(input_shape, n_class, n_route):
 
     # Layer 1: Just a conventional Conv2D layer
     conv1 = layers.Conv2D(filters=256, kernel_size=5, strides=2, padding='valid', activation='relu', name='conv1_i')(x)
-    conv1 = layers.Conv2D(filters=256, kernel_size=3, strides=3, padding='valid', activation='relu', name='conv1_o')(conv1)
-    conv1 = layers.Conv2D(filters=256, kernel_size=8, strides=1, padding='valid', activation='relu', name='conv1')(conv1)
+    if(kth):
+        conv1 = layers.Conv2D(filters=256, kernel_size=3, strides=3, padding='valid', activation='relu', name='conv1_o')(conv1)
+        conv1 = layers.Conv2D(filters=256, kernel_size=8, strides=1, padding='valid', activation='relu', name='conv1')(conv1)
 
     # Layer 2: Conv2D layer with `squash` activation, then reshape to [None, num_capsule, dim_vector]
     primarycaps = PrimaryCap(conv1, dim_vector=8, n_channels=32, kernel_size=9, strides=2, padding='valid')
@@ -55,8 +56,9 @@ def CapsNet(input_shape, n_class, n_route):
     x_recon = layers.Dense(512, activation='relu')(masked)
     x_recon = layers.Dense(32*32*3, activation='relu')(x_recon)
     x_recon = layers.Reshape(target_shape=(32,32,3), name='out_recon')(x_recon)
-    x_recon = layers.Conv2DTranspose(filters=256, kernel_size=5, strides=(3, 3))(x_recon)
-    x_recon = layers.Conv2DTranspose(filters=3, kernel_size=6, strides=(2, 2))(x_recon)
+    if(kth):
+        x_recon = layers.Conv2DTranspose(filters=256, kernel_size=5, strides=(3, 3))(x_recon)
+        x_recon = layers.Conv2DTranspose(filters=3, kernel_size=6, strides=(2, 2))(x_recon)
     print(x_recon)
     
     #x_recon=tf.layers.conv2d_transpose(x_recon,kernel_size=5,strides=3,filters=256)

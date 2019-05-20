@@ -1,11 +1,13 @@
 import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
 
+
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = False
 config.gpu_options.per_process_gpu_memory_fraction = 1
 set_session(tf.Session(config=config))
 import sys
+from sklearn.metrics import confusion_matrix
 
 from keras.layers import (
     Input,
@@ -30,7 +32,7 @@ import time as t
 
 def timed(time):
     time=t.strftime('%H:%M:%S', t.gmtime(time))+str(time%1)[1:4]
-    print('tiempo de descarga')
+    print('tiempo de entrenamiento')
     print(time)
 
 
@@ -124,47 +126,55 @@ def margin_loss(y_true, y_pred):
 
     return K.mean(K.sum(L, 1))
 
-def train(epochs=200,batch_size=64,mode=1):
-    import numpy as np
-    import os
+def train(epochs,batch_size,mode):
+    mode=int(mode)
     from keras import callbacks
     from keras.utils.vis_utils import plot_model
     if mode==1:
         num_classes = 10
-        x_train=np.load('/home/vision/Documentos/kth_img_train.npy')
-        y_train=np.load('/home/vision/Documentos/kth_lab_train.npy')
-<<<<<<< HEAD
-        with tf.Session() as sess:
-            y_train=sess.run(tf.one_hot(y_train,10))
-        x_test=np.load('/home/vision/Documentos/kth_img_test.npy')
-        y_test=np.load('/home/vision/Documentos/kth_lab_test.npy')
-        with tf.Session() as sess:
-            y_test=sess.run(tf.one_hot(y_test,10))
-        print(x_train.shape)
-        #sys.exit(1)
-=======
-        x_test=np.load('/home/vision/Documentos/kth_img_test.npy')
-        y_test=np.load('/home/vision/Documentos/kth_lab_test.npy')
->>>>>>> 33cf235ce5f551ef70ab73ea09e379189dfd7676
+        (x_train,y_train),(x_test,y_test) = load_cifar_10()
+        model = CapsNetv1(input_shape=[32,32, 3],
+                            n_class=num_classes,
+                            n_route=3)
+        print('x_train shape:', x_train.shape)
+        print(x_train.shape[0], 'train samples')
+        print(x_test.shape[0], 'test samples')
     else:
-        num_classes = 100
-        (x_train,y_train),(x_test,y_test) = load_cifar_100()
-    model = CapsNetv1(input_shape=[200,200, 3],
-                        n_class=num_classes,
-                        n_route=3)
-    print('x_train shape:', x_train.shape)
-    print(x_train.shape[0], 'train samples')
-    print(x_test.shape[0], 'test samples')
+        num_classes = 10
+        try:
+            x_train=np.load('/home/vision/Documentos/kth_img_train.npy')
+            y_train=np.load('/home/vision/Documentos/kth_lab_train.npy')
+            with tf.Session() as sess:
+                y_train=sess.run(tf.one_hot(y_train,10))
+        except:
+            print('kth no cargado')
+        try:
+            x_test=np.load('/home/vision/Documentos/kth_img_test.npy')
+            y_test=np.load('/home/vision/Documentos/kth_lab_test.npy')
+            with tf.Session() as sess:
+                y_test=sess.run(tf.one_hot(y_test,10))
+            print('x_train shape:', x_train.shape)
+            print(x_train.shape[0], 'train samples')
+            print(x_test.shape[0], 'test samples')
+        except:
+            print('kth no cargado')
+        model = CapsNetv1(input_shape=[200,200, 3],
+                            n_class=num_classes,
+                            n_route=3,kth=True)
 
     model.summary()
-    log = callbacks.CSVLogger('results/capsule-cifar-'+str(num_classes)+'-log.csv')
-    tb = callbacks.TensorBoard(log_dir='results/tensorboard-capsule-cifar-'+str(num_classes)+'-logs',
+    if(mode):
+        maske='KTH'
+    else:
+        maske='Cifar10'
+    log = callbacks.CSVLogger('results'+maske+'/capsule-net-'+str(num_classes)+'-log.csv')
+    tb = callbacks.TensorBoard(log_dir='results'+maske+'/tensorboard-capsule-net-'+str(num_classes)+'-logs',
                                batch_size=batch_size, histogram_freq=True)
-    checkpoint = callbacks.ModelCheckpoint('weights/capsule-cifar-'+str(num_classes)+'weights-{epoch:02d}.h5',
+    checkpoint = callbacks.ModelCheckpoint('weights'+maske+'/capsule-net-'+str(num_classes)+'weights-{epoch:02d}.h5',
                                            save_best_only=True, save_weights_only=True, verbose=1)
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: 0.001 * np.exp(-epoch / 10.))
 
-    plot_model(model, to_file='models/capsule-cifar-'+str(num_classes)+'.png', show_shapes=True)
+    plot_model(model, to_file='models'+maske+'/capsule-net-'+str(num_classes)+'.png', show_shapes=True)
 
     model.compile(optimizer=optimizers.Adam(lr=0.0001),
                   loss=[margin_loss, 'mse'],
@@ -184,36 +194,76 @@ def train(epochs=200,batch_size=64,mode=1):
     timed(stop-start)
 
 def test(epoch, mode=1):
-    import matplotlib.pyplot as plt
     from PIL import Image
     from utils.helper_function import combine_images
-
-    if mode == 1:
-        num_classes =10
-        _,(x_test,y_test) = load_cifar_10()
+    if(mode):
+        maske='KTH'
     else:
-        num_classes = 100
-        _,(x_test,y_test) = load_cifar_100()
-    
-    model = CapsNetv1(input_shape=[32, 32, 3],
-                        n_class=num_classes,
-                        n_route=3)
- #   for e in epoch:
-    model.load_weights('weights/capsule-cifar-'+str(num_classes)+'weights-{:02d}.h5'.format(40))
+        maske='Cifar10'
+    if mode==1:
+        num_classes = 10
+        (x_train,y_train),(x_test,y_test) = load_cifar_10()
+        model = CapsNetv1(input_shape=[32,32, 3],
+                            n_class=num_classes,
+                            n_route=3)
+        print('x_train shape:', x_train.shape)
+        print(x_train.shape[0], 'train samples')
+        print(x_test.shape[0], 'test samples')
+    else:
+        num_classes = 10
+        try:
+            x_train=np.load('/home/vision/Documentos/kth_img_train.npy')
+            y_train=np.load('/home/vision/Documentos/kth_lab_train.npy')
+            with tf.Session() as sess:
+                y_train=sess.run(tf.one_hot(y_train,10))
+        except:
+            print('kth no cargado')
+        try:
+            x_test=np.load('/home/vision/Documentos/kth_img_test.npy')
+            y_test=np.load('/home/vision/Documentos/kth_lab_test.npy')
+            with tf.Session() as sess:
+                y_test=sess.run(tf.one_hot(y_test,10))
+            print('x_train shape:', x_train.shape)
+            print(x_train.shape[0], 'train samples')
+            print(x_test.shape[0], 'test samples')
+        except:
+            print('kth no cargado')
+        model = CapsNetv1(input_shape=[200,200, 3],
+                            n_class=num_classes,
+                            n_route=3,kth=True)
+        pass
+    accuracy=[]
+    conf_matrix=[]
+    for epoch in range(1,epoch+1):
+        model.load_weights('weights'+maske+'/capsule_weights/capsule-cifar-'+str(num_classes)+'weights-{:02d}.h5'.format(epoch))
+        print("Weights loaded, start validation con epoch "+str(epoch))
+        y_pred, x_recon = model.predict([x_test, y_test], batch_size=100)
+        ac=np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))/y_test.shape[0]
+        accuracy.append(ac)
+        conf_matrix.append(confusion_matrix(y_true=np.argmax(y_test, 1), y_pred=np.argmax(y_pred, 1)))
+        print('Test acc:',ac)  
         
-    #    pass
-     
-    print("Weights loaded, start validation")   
-    # model.load_weights('weights/capsule-weights-{:02d}.h5'.format(epoch))    
-    y_pred, x_recon = model.predict([x_test, y_test], batch_size=100)
-    print('-'*50)
-    # Test acc: 0.7307
-    print('Test acc:', np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))/y_test.shape[0])
-    np.save('results/acc_{:d}'.format(epoch))
-    img = combine_images(np.concatenate([x_test[:50],x_recon[:50]]))
-    image = img*255
-    Image.fromarray(image.astype(np.uint8)).save("results/real_and_recon.png")
-    print('Reconstructed images are saved to ./results/real_and_recon.png')
-    print('-'*50)
-    plt.imshow(plt.imread("results/real_and_recon.png", ))
-    plt.show()
+        img = combine_images(np.concatenate([x_test[:50],x_recon[:50]]))
+        image = img*255
+        Image.fromarray(image.astype(np.uint8)).save('results'+maske+'/real_and_recon_'+str(epoch+1)+'.png')
+        pass
+    accuracy=np.array(accuracy)
+    conf_matrix=np.array(conf_matrix)
+    np.save('results'+maske+'/acc',accuracy)
+    np.save('results'+maske+'/cnf',conf_matrix)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
