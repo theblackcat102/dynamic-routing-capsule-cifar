@@ -134,10 +134,10 @@ def train(epochs,batch_size,mode):
     else:
         maske='KTH'
     print(len(os.listdir('weights'+maske+'/')))
-    sys.exit(0)
     if(len(os.listdir('weights'+maske+'/'))<2):
         print('already trained')
         return 0
+    sys.exit(0)
     from keras import callbacks
     from keras.utils.vis_utils import plot_model
     if mode==1:
