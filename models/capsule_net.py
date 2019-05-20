@@ -133,6 +133,7 @@ def train(epochs=200,batch_size=64,mode=1):
         num_classes = 10
         x_train=np.load('/home/vision/Documentos/kth_img_train.npy')
         y_train=np.load('/home/vision/Documentos/kth_lab_train.npy')
+<<<<<<< HEAD
         with tf.Session() as sess:
             y_train=sess.run(tf.one_hot(y_train,10))
         x_test=np.load('/home/vision/Documentos/kth_img_test.npy')
@@ -141,6 +142,10 @@ def train(epochs=200,batch_size=64,mode=1):
             y_test=sess.run(tf.one_hot(y_test,10))
         print(x_train.shape)
         #sys.exit(1)
+=======
+        x_test=np.load('/home/vision/Documentos/kth_img_test.npy')
+        y_test=np.load('/home/vision/Documentos/kth_lab_test.npy')
+>>>>>>> 33cf235ce5f551ef70ab73ea09e379189dfd7676
     else:
         num_classes = 100
         (x_train,y_train),(x_test,y_test) = load_cifar_100()
