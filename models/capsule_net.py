@@ -29,6 +29,7 @@ from utils.helper_function import load_cifar_10,load_cifar_100
 from models.capsulenet import CapsNet as CapsNetv1
 import numpy as np
 import time as t
+import os
 
 def timed(time):
     time=t.strftime('%H:%M:%S', t.gmtime(time))+str(time%1)[1:4]
@@ -128,6 +129,13 @@ def margin_loss(y_true, y_pred):
 
 def train(epochs,batch_size,mode):
     mode=int(mode)
+    if(mode):
+        maske='Cifar10'
+    else:
+        maske='KTH'
+    if(len(os.listdir('weights'+maske+'/'))<2):
+        print('already trained')
+        return 0
     from keras import callbacks
     from keras.utils.vis_utils import plot_model
     if mode==1:
@@ -163,15 +171,11 @@ def train(epochs,batch_size,mode):
                             n_route=3,kth=True)
 
     model.summary()
-    if(mode):
-        maske='Cifar10'
-    else:
-        maske='KTH'
     log = callbacks.CSVLogger('results'+maske+'/capsule-net-'+str(num_classes)+'-log.csv')
     tb = callbacks.TensorBoard(log_dir='results'+maske+'/tensorboard-capsule-net-'+str(num_classes)+'-logs',
                                batch_size=batch_size, histogram_freq=True)
     checkpoint = callbacks.ModelCheckpoint('weights'+maske+'/capsule-net-'+str(num_classes)+'weights-{epoch:02d}.h5',
-                                           save_best_only=True, save_weights_only=True, verbose=1)
+                                           save_best_only=False, save_weights_only=True, verbose=1)
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: 0.001 * np.exp(-epoch / 10.))
 
     plot_model(model, to_file='models'+maske+'/capsule-net-'+str(num_classes)+'.png', show_shapes=True)
@@ -236,17 +240,20 @@ def test(epoch, mode=1):
     accuracy=[]
     conf_matrix=[]
     for epoch in range(1,epoch+1):
-        model.load_weights('weights'+maske+'/capsule_weights/capsule-cifar-'+str(num_classes)+'weights-{:02d}.h5'.format(epoch))
-        print("Weights loaded, start validation con epoch "+str(epoch))
-        y_pred, x_recon = model.predict([x_test, y_test], batch_size=100)
-        ac=np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))/y_test.shape[0]
-        accuracy.append(ac)
-        conf_matrix.append(confusion_matrix(y_true=np.argmax(y_test, 1), y_pred=np.argmax(y_pred, 1)))
-        print('Test acc:',ac)  
-        
-        img = combine_images(np.concatenate([x_test[:50],x_recon[:50]]))
-        image = img*255
-        Image.fromarray(image.astype(np.uint8)).save('results'+maske+'/real_and_recon_'+str(epoch+1)+'.png')
+        try:
+            model.load_weights('weights'+maske+'/capsule_weights/capsule-cifar-'+str(num_classes)+'weights-{:02d}.h5'.format(epoch))
+            print("Weights loaded, start validation con epoch "+str(epoch))
+            y_pred, x_recon = model.predict([x_test, y_test], batch_size=100)
+            ac=np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))/y_test.shape[0]
+            accuracy.append(ac)
+            conf_matrix.append(confusion_matrix(y_true=np.argmax(y_test, 1), y_pred=np.argmax(y_pred, 1)))
+            print('Test acc:',ac)  
+            
+            img = combine_images(np.concatenate([x_test[:50],x_recon[:50]]))
+            image = img*255
+            Image.fromarray(image.astype(np.uint8)).save('results'+maske+'/real_and_recon_'+str(epoch+1)+'.png')
+        except:
+            print('not saver epoch '+str(epoch))
         pass
     accuracy=np.array(accuracy)
     conf_matrix=np.array(conf_matrix)
