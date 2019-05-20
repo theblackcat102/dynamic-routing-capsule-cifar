@@ -242,7 +242,7 @@ def test(epoch, mode=1):
     conf_matrix=[]
     for epoch in range(1,epoch+1):
         try:
-            model.load_weights('weights'+maske+'/capsule-cifar-'+str(num_classes)+'weights-{:02d}.h5'.format(epoch))
+            model.load_weights('weights'+maske+'/capsule-net-'+str(num_classes)+'weights-{:02d}.h5'.format(epoch))
             print("Weights loaded, start validation con epoch "+str(epoch))
             y_pred, x_recon = model.predict([x_test, y_test], batch_size=100)
             ac=np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))/y_test.shape[0]
