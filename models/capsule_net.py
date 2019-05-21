@@ -190,7 +190,7 @@ def train(epochs,batch_size,mode):
 
     plot_model(model, to_file='models'+maske+'/capsule-net-'+str(num_classes)+'.png', show_shapes=True)
 
-    model.compile(optimizer=optimizers.Adam(lr=0.0001),
+    model.compile(optimizer=optimizers.Adam(lr=0.01),
                   loss=[margin_loss, 'mse'],
                   loss_weights=[1., 0.1],
                   metrics={'output_recon':'accuracy','output':'accuracy'})
