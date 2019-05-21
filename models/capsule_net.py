@@ -218,6 +218,7 @@ def test(epoch, mode=1):
         print(x_train.shape[0], 'train samples')
         print(x_test.shape[0], 'test samples')
     else:
+        print('KTH-Loaded')
         num_classes = 10
         try:
             x_train=np.load('/home/vision/Documentos/kth_img_train.npy')
@@ -241,10 +242,15 @@ def test(epoch, mode=1):
                             n_route=3,kth=True)
         pass
     accuracy=[]
+    print(maske)
+    print(mode)
+    _=input('continuar?')
     conf_matrix=[]
     for epoch in range(1,epoch+1):
         try:
-            model.load_weights('weights'+maske+'/capsule-net-'+str(num_classes)+'weights-{:02d}.h5'.format(epoch))
+            model_path='weights'+maske+'/capsule-net-'+str(num_classes)+'weights-{:02d}.h5'.format(epoch)
+            model.load_weights(model_path)
+            print('model path '+model_path)
             print("Weights loaded, start validation con epoch "+str(epoch))
             y_pred, x_recon = model.predict([x_test, y_test], batch_size=100)
             ac=np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))/y_test.shape[0]

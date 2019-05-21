@@ -109,3 +109,8 @@ venv.bak/
 
 .project
 .pydevproject
+resultsCifar10/
+*.zip
+resultsKTH/
+weightsCifar10/
+weightsKTH/
