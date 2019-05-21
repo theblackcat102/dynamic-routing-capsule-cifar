@@ -5,7 +5,7 @@ from keras.layers.advanced_activations import LeakyReLU
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = False
-config.gpu_options.per_process_gpu_memory_fraction = 1
+config.gpu_options.per_process_gpu_memory_fraction = 0.5
 set_session(tf.Session(config=config))
 import sys
 from sklearn.metrics import confusion_matrix
@@ -253,7 +253,8 @@ def test(epoch, mode=1):
     print(mode)
     _=input('continuar?')
     conf_matrix=[]
-    for epoch in range(1,epoch+1):
+    epochs=epoch
+    for epoch in range(1,epochs+1):
         try:
             model_path='weights'+maske+'/capsule-net-'+str(num_classes)+'weights-{:02d}.h5'.format(epoch)
             model.load_weights(model_path)
@@ -270,6 +271,11 @@ def test(epoch, mode=1):
             Image.fromarray(image.astype(np.uint8)).save('results'+maske+'/real_and_recon_'+str(epoch+1)+'.png')
         except:
             print('not saver epoch '+str(epoch))
+            pass
+        if((epoch/epochs)>0.9):
+            img = combine_images(np.concatenate([x_test[:50],x_recon[:50]]))
+            image = img*255
+            Image.fromarray(image.astype(np.uint8)).save('results'+maske+'/real_and_recon_'+str(epoch+1)+'.png')
         pass
     accuracy=np.array(accuracy)
     conf_matrix=np.array(conf_matrix)
