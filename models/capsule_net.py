@@ -1,5 +1,6 @@
 import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
+from keras.layers.advanced_activations import LeakyReLU
 
 
 config = tf.ConfigProto()
@@ -67,16 +68,22 @@ def CapsNet(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024))
     y = Input(shape=(n_class,))
     masked = Mask()([routing_layer,y])
     
-    x_recon = Dense(dense_size[0],activation='relu')(masked)
+    x_recon = Dense(dense_size[0])(masked)
+    x_recon=LeakyReLU(0.2)(x_recon)
 
     for i in range(1,len(dense_size)):
-        x_recon = Dense(dense_size[i],activation='relu')(x_recon)
+        x_recon = Dense(dense_size[i])(x_recon)
+        x_recon=LeakyReLU(0.2)(x_recon)
     # Is there any other way to do  
-    x_recon = Dense(target_shape[0]*target_shape[1]*target_shape[2],activation='relu')(x_recon)
+    x_recon = Dense(target_shape[0]*target_shape[1]*target_shape[2])(x_recon)
+    x_recon=LeakyReLU(0.2)(x_recon)
     x_recon = Reshape(target_shape=target_shape,name='output_recon')(x_recon)
     x_recon=tf.layers.conv2d_transpose(x_recon,kernel_size=5,strides=3,filters=64)
+    x_recon=LeakyReLU(0.2)(x_recon)
     x_recon=tf.layers.conv2d_transpose(x_recon,kernel_size=5,strides=3,filters=256)
+    x_recon=LeakyReLU(0.2)(x_recon)
     x_recon=tf.layers.conv2d_transpose(x_recon,kernel_size=6,strides=2,filters=3)
+    x_recon=LeakyReLU(0.2)(x_recon)
     return Model([input,y],[output,x_recon])
 
 # why using 512, 1024 Maybe to mimic original 10M params?
