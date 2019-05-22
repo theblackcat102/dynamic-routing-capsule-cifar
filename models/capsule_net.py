@@ -45,7 +45,7 @@ def convolution_block(input,kernel_size=8,filters=16,kernel_regularizer=l2(1.e-4
     activation = Activation("relu")(norm)
     return activation    
 
-def CapsNet(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024)):
+def CapsNet(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024),isrelu=True):
     conv_filter = 256
     n_kernel = 24
     primary_channel =64
@@ -69,21 +69,39 @@ def CapsNet(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024))
     masked = Mask()([routing_layer,y])
     
     x_recon = Dense(dense_size[0])(masked)
-    x_recon=LeakyReLU(0.2)(x_recon)
+    if(isrelu):
+        x_recon=Activation('relu')(x_recon)
+    else:
+        x_recon=LeakyReLU(0.2)(x_recon)
 
     for i in range(1,len(dense_size)):
         x_recon = Dense(dense_size[i])(x_recon)
-        x_recon=LeakyReLU(0.2)(x_recon)
+        if(isrelu):
+            x_recon=Activation('relu')(x_recon)
+        else:
+            x_recon=LeakyReLU(0.2)(x_recon)
     # Is there any other way to do  
     x_recon = Dense(target_shape[0]*target_shape[1]*target_shape[2])(x_recon)
-    x_recon=LeakyReLU(0.2)(x_recon)
+    if(isrelu):
+        x_recon=Activation('relu')(x_recon)
+    else:
+        x_recon=LeakyReLU(0.2)(x_recon)
     x_recon = Reshape(target_shape=target_shape,name='output_recon')(x_recon)
     x_recon=tf.layers.conv2d_transpose(x_recon,kernel_size=5,strides=3,filters=64)
-    x_recon=LeakyReLU(0.2)(x_recon)
+    if(isrelu):
+        x_recon=Activation('relu')(x_recon)
+    else:
+        x_recon=LeakyReLU(0.2)(x_recon)
     x_recon=tf.layers.conv2d_transpose(x_recon,kernel_size=5,strides=3,filters=256)
-    x_recon=LeakyReLU(0.2)(x_recon)
+    if(isrelu):
+        x_recon=Activation('relu')(x_recon)
+    else:
+        x_recon=LeakyReLU(0.2)(x_recon)
     x_recon=tf.layers.conv2d_transpose(x_recon,kernel_size=6,strides=2,filters=3)
-    x_recon=LeakyReLU(0.2)(x_recon)
+    if(isrelu):
+        x_recon=Activation('relu')(x_recon)
+    else:
+        x_recon=LeakyReLU(0.2)(x_recon)
     return Model([input,y],[output,x_recon])
 
 # why using 512, 1024 Maybe to mimic original 10M params?
@@ -141,7 +159,6 @@ def train(epochs,batch_size,mode):
     else:
         maske='KTH'
     print(maske)
-    _=input('continuar?')
     print(len(os.listdir('weights'+maske+'/')))
     if(len(os.listdir('weights'+maske+'/'))>2):
         print('already trained')
@@ -251,7 +268,6 @@ def test(epoch, mode=1):
     accuracy=[]
     print(maske)
     print(mode)
-    _=input('continuar?')
     conf_matrix=[]
     epochs=epoch
     for epoch in range(1,epochs+1):
