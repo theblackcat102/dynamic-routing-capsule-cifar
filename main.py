@@ -11,6 +11,7 @@ arguments.add_argument('--epocs',default=100)
 arguments.add_argument('--batch_size',default=128)
 arguments.add_argument('--dataset',default=1)
 arguments.add_argument('--is_relu',default=1)
+arguments.add_argument('--has',default=1)
 
 if __name__ == "__main__":
     arg=arguments.parse_args()
@@ -20,7 +21,12 @@ if __name__ == "__main__":
     print(is_relu)
     batch_size=arg.batch_size
     dataset=arg.dataset
-    capsule_train(epochs,batch_size,dataset,is_relu)
+    has=bool(arg.has)
+    capsule_train(epochs=epochs,
+                  batch_size=batch_size,
+                  mode=dataset,
+                  is_relu=is_relu,
+                  has=has)
     capsule_test(epochs,dataset)
     #plot_log("results/resnet-cifar-10-log.csv")
  

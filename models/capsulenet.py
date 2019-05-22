@@ -25,7 +25,7 @@ import tensorflow as tf
 import sys
 from keras.layers.advanced_activations import LeakyReLU
 
-def CapsNet(input_shape, n_class, n_route,kth=False,is_relu=True):
+def CapsNet(input_shape, n_class, n_route,kth=False,is_relu=True,has=True):
     """
     A Capsule Network on MNIST.
     :param input_shape: data shape, 3d, [width, height, channels]
@@ -64,14 +64,19 @@ def CapsNet(input_shape, n_class, n_route,kth=False,is_relu=True):
         x_recon=LeakyReLU(0.2)(x_recon)
     x_recon = layers.Reshape(target_shape=(32,32,3), name='out_recon')(x_recon)
     if(kth):
-        if(is_relu):
-            x_recon = layers.Conv2DTranspose(filters=256, kernel_size=5, strides=(3, 3), activation='relu')(x_recon)
-            x_recon = layers.Conv2DTranspose(filters=3, kernel_size=6, strides=(2, 2), activation='relu')(x_recon)
+        if(has):
+            if(is_relu):
+                x_recon = layers.Conv2DTranspose(filters=256, kernel_size=5, strides=(3, 3), activation='relu')(x_recon)
+                x_recon = layers.Conv2DTranspose(filters=3, kernel_size=6, strides=(2, 2), activation='relu')(x_recon)
+            else:
+                x_recon = layers.Conv2DTranspose(filters=256, kernel_size=5, strides=(3, 3))(x_recon)
+                x_recon=LeakyReLU(0.2)(x_recon)
+                x_recon = layers.Conv2DTranspose(filters=3, kernel_size=6, strides=(2, 2))(x_recon)
+                x_recon=LeakyReLU(0.2)(x_recon)
+                pass
         else:
             x_recon = layers.Conv2DTranspose(filters=256, kernel_size=5, strides=(3, 3))(x_recon)
-            x_recon=LeakyReLU(0.2)(x_recon)
             x_recon = layers.Conv2DTranspose(filters=3, kernel_size=6, strides=(2, 2))(x_recon)
-            x_recon=LeakyReLU(0.2)(x_recon)
     print(x_recon)
     
     #x_recon=tf.layers.conv2d_transpose(x_recon,kernel_size=5,strides=3,filters=256)

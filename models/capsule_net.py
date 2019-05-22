@@ -152,7 +152,7 @@ def margin_loss(y_true, y_pred):
 
     return K.mean(K.sum(L, 1))
 
-def train(epochs,batch_size,mode,is_relu):
+def train(epochs,batch_size,mode,is_relu,has=True):
     mode=int(mode)
     if(mode==1):
         maske='Cifar10'
@@ -196,7 +196,8 @@ def train(epochs,batch_size,mode,is_relu):
         model = CapsNetv1(input_shape=[200,200, 3],
                             n_class=num_classes,
                             n_route=3,kth=True,
-                            is_relu=is_relu)
+                            is_relu=is_relu,
+                            has=has)
 
     model.summary()
     log = callbacks.CSVLogger('results'+maske+'/capsule-net-'+str(num_classes)+'-log.csv')
