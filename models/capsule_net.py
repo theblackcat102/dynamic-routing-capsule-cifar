@@ -5,7 +5,7 @@ from keras.layers.advanced_activations import LeakyReLU
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = False
-config.gpu_options.per_process_gpu_memory_fraction = 0.5
+config.gpu_options.per_process_gpu_memory_fraction = 1
 set_session(tf.Session(config=config))
 import sys
 from sklearn.metrics import confusion_matrix

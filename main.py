@@ -16,7 +16,7 @@ if __name__ == "__main__":
     arg=arguments.parse_args()
     # # resnet_train()
     epochs=arg.epocs
-    is_relu=bool(arg.isrelu)
+    is_relu=bool(arg.is_relu)
     print(is_relu)
     batch_size=arg.batch_size
     dataset=arg.dataset
