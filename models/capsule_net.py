@@ -45,7 +45,7 @@ def convolution_block(input,kernel_size=8,filters=16,kernel_regularizer=l2(1.e-4
     activation = Activation("relu")(norm)
     return activation    
 
-def CapsNet(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024),isrelu=True):
+def CapsNet(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024),is_relu=True):
     conv_filter = 256
     n_kernel = 24
     primary_channel =64
@@ -69,36 +69,36 @@ def CapsNet(input_shape,n_class,n_route,n_prime_caps=32,dense_size = (512,1024),
     masked = Mask()([routing_layer,y])
     
     x_recon = Dense(dense_size[0])(masked)
-    if(isrelu):
+    if(is_relu):
         x_recon=Activation('relu')(x_recon)
     else:
         x_recon=LeakyReLU(0.2)(x_recon)
 
     for i in range(1,len(dense_size)):
         x_recon = Dense(dense_size[i])(x_recon)
-        if(isrelu):
+        if(is_relu):
             x_recon=Activation('relu')(x_recon)
         else:
             x_recon=LeakyReLU(0.2)(x_recon)
     # Is there any other way to do  
     x_recon = Dense(target_shape[0]*target_shape[1]*target_shape[2])(x_recon)
-    if(isrelu):
+    if(is_relu):
         x_recon=Activation('relu')(x_recon)
     else:
         x_recon=LeakyReLU(0.2)(x_recon)
     x_recon = Reshape(target_shape=target_shape,name='output_recon')(x_recon)
     x_recon=tf.layers.conv2d_transpose(x_recon,kernel_size=5,strides=3,filters=64)
-    if(isrelu):
+    if(is_relu):
         x_recon=Activation('relu')(x_recon)
     else:
         x_recon=LeakyReLU(0.2)(x_recon)
     x_recon=tf.layers.conv2d_transpose(x_recon,kernel_size=5,strides=3,filters=256)
-    if(isrelu):
+    if(is_relu):
         x_recon=Activation('relu')(x_recon)
     else:
         x_recon=LeakyReLU(0.2)(x_recon)
     x_recon=tf.layers.conv2d_transpose(x_recon,kernel_size=6,strides=2,filters=3)
-    if(isrelu):
+    if(is_relu):
         x_recon=Activation('relu')(x_recon)
     else:
         x_recon=LeakyReLU(0.2)(x_recon)
@@ -152,7 +152,7 @@ def margin_loss(y_true, y_pred):
 
     return K.mean(K.sum(L, 1))
 
-def train(epochs,batch_size,mode):
+def train(epochs,batch_size,mode,is_relu):
     mode=int(mode)
     if(mode==1):
         maske='Cifar10'
@@ -195,7 +195,8 @@ def train(epochs,batch_size,mode):
             print('kth no cargado')
         model = CapsNetv1(input_shape=[200,200, 3],
                             n_class=num_classes,
-                            n_route=3,kth=True)
+                            n_route=3,kth=True,
+                            is_relu=is_relu)
 
     model.summary()
     log = callbacks.CSVLogger('results'+maske+'/capsule-net-'+str(num_classes)+'-log.csv')
