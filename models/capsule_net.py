@@ -333,7 +333,7 @@ def test(epoch, mode=1,normal=False,best_model_name='.'):
     best_ecpoch=np.argmax(accuracy)+1
     best_model_path='weights'+maske+'/capsule-net-'+str(num_classes)+'weights-{:02d}.h5'.format(best_ecpoch)
     os.rename(src=best_model_path,
-              dst='models/'+best_model_name)
+              dst='modelsKTH/'+best_model_name)
     np.save('results'+maske+'/acc',accuracy)
     np.save('results'+maske+'/cnf',conf_matrix)
     

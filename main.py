@@ -34,14 +34,24 @@ if __name__ == "__main__":
         maske='Cifar10'
     else:
         maske='KTH'
-    if(has):
-        if(is_relu):
-            best_model_name=maske+'_Relu.h5'
+    if(normal==False):
+        if(has):
+            if(is_relu):
+                best_model_name=maske+'_Relu.h5'
+            else:
+                best_model_name=maske+'_Leaky_Relu.h5'
+                pass
         else:
-            best_model_name=maske+'_Leaky_Relu.h5'
-            pass
-    else:
-        best_model_name=maske+'.h5'
+            best_model_name=maske+'.h5'
+    if(normal==True):
+        if(has):
+            if(is_relu):
+                best_model_name=maske+'_Relu_norm.h5'
+            else:
+                best_model_name=maske+'_Leaky_Relu_norm.h5'
+                pass
+        else:
+            best_model_name=maske+'_norm.h5'
     capsule_test(epochs,dataset,
                  normal=normalize,
                  best_model_name=best_model_name)
