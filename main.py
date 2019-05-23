@@ -20,7 +20,7 @@ if __name__ == "__main__":
     epochs=arg.epocs
     is_relu=bool(arg.is_relu)
     print(is_relu)
-    batch_size=arg.batch_size
+    batch_size=int(arg.batch_size)
     dataset=arg.dataset
     has=bool(arg.has)
     normalize=bool(arg.normalize)
