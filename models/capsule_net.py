@@ -152,7 +152,7 @@ def margin_loss(y_true, y_pred):
 
     return K.mean(K.sum(L, 1))
 
-def train(epochs,batch_size,mode,is_relu,has=True,normal=False):
+def train(epochs,batch_size,mode,is_relu,has=True,version=''):
     mode=int(mode)
     if(mode==1):
         maske='Cifar10'
@@ -176,42 +176,23 @@ def train(epochs,batch_size,mode,is_relu,has=True,normal=False):
         print(x_test.shape[0], 'test samples')
     else:
         num_classes = 10
-        if(normal==False):
-            try:
-                x_train=np.load('/home/vision/Documentos/kth_img_train.npy')
-                y_train=np.load('/home/vision/Documentos/kth_lab_train.npy')
-                with tf.Session() as sess:
-                    y_train=sess.run(tf.one_hot(y_train,10))
-            except:
-                print('kth no cargado')
-            try:
-                x_test=np.load('/home/vision/Documentos/kth_img_test.npy')
-                y_test=np.load('/home/vision/Documentos/kth_lab_test.npy')
-                with tf.Session() as sess:
-                    y_test=sess.run(tf.one_hot(y_test,10))
-                print('x_train shape:', x_train.shape)
-                print(x_train.shape[0], 'train samples')
-                print(x_test.shape[0], 'test samples')
-            except:
-                print('kth no cargado')
-        if(normal==True):
-            try:
-                x_train=np.load('/home/vision/Documentos/kth_img_train_norm.npy')
-                y_train=np.load('/home/vision/Documentos/kth_lab_train_norm.npy')
-                with tf.Session() as sess:
-                    y_train=sess.run(tf.one_hot(y_train,10))
-            except:
-                print('kth no cargado')
-            try:
-                x_test=np.load('/home/vision/Documentos/kth_img_test_norm.npy')
-                y_test=np.load('/home/vision/Documentos/kth_lab_test_norm.npy')
-                with tf.Session() as sess:
-                    y_test=sess.run(tf.one_hot(y_test,10))
-                print('x_train shape:', x_train.shape)
-                print(x_train.shape[0], 'train samples')
-                print(x_test.shape[0], 'test samples')
-            except:
-                print('kth no cargado')
+        try:
+            x_train=np.load('/home/vision/Documentos/kth_img_train'+version+'.npy')
+            y_train=np.load('/home/vision/Documentos/kth_lab_train'+version+'.npy')
+            with tf.Session() as sess:
+                y_train=sess.run(tf.one_hot(y_train,10))
+        except:
+            print('kth no cargado')
+        try:
+            x_test=np.load('/home/vision/Documentos/kth_img_test'+version+'.npy')
+            y_test=np.load('/home/vision/Documentos/kth_lab_test'+version+'.npy')
+            with tf.Session() as sess:
+                y_test=sess.run(tf.one_hot(y_test,10))
+            print('x_train shape:', x_train.shape)
+            print(x_train.shape[0], 'train samples')
+            print(x_test.shape[0], 'test samples')
+        except:
+            print('kth no cargado')
         model = CapsNetv1(input_shape=[200,200, 3],
                             n_class=num_classes,
                             n_route=3,kth=True,
@@ -245,7 +226,7 @@ def train(epochs,batch_size,mode,is_relu,has=True,normal=False):
     stop=t.time()
     timed(stop-start)
 
-def test(epoch, mode=1,normal=False,best_model_name='.'):
+def test(epoch, mode=1,version='',best_model_name='.'):
     epoch=int(epoch)
     from PIL import Image
     from utils.helper_function import combine_images
@@ -264,42 +245,23 @@ def test(epoch, mode=1,normal=False,best_model_name='.'):
         print(x_test.shape[0], 'test samples')
     else:
         num_classes = 10
-        if(normal==False):
-            try:
-                x_train=np.load('/home/vision/Documentos/kth_img_train.npy')
-                y_train=np.load('/home/vision/Documentos/kth_lab_train.npy')
-                with tf.Session() as sess:
-                    y_train=sess.run(tf.one_hot(y_train,10))
-            except:
-                print('kth no cargado')
-            try:
-                x_test=np.load('/home/vision/Documentos/kth_img_test.npy')
-                y_test=np.load('/home/vision/Documentos/kth_lab_test.npy')
-                with tf.Session() as sess:
-                    y_test=sess.run(tf.one_hot(y_test,10))
-                print('x_train shape:', x_train.shape)
-                print(x_train.shape[0], 'train samples')
-                print(x_test.shape[0], 'test samples')
-            except:
-                print('kth no cargado')
-        if(normal==True):
-            try:
-                x_train=np.load('/home/vision/Documentos/kth_img_train_norm.npy')
-                y_train=np.load('/home/vision/Documentos/kth_lab_train_norm.npy')
-                with tf.Session() as sess:
-                    y_train=sess.run(tf.one_hot(y_train,10))
-            except:
-                print('kth no cargado')
-            try:
-                x_test=np.load('/home/vision/Documentos/kth_img_test_norm.npy')
-                y_test=np.load('/home/vision/Documentos/kth_lab_test_norm.npy')
-                with tf.Session() as sess:
-                    y_test=sess.run(tf.one_hot(y_test,10))
-                print('x_train shape:', x_train.shape)
-                print(x_train.shape[0], 'train samples')
-                print(x_test.shape[0], 'test samples')
-            except:
-                print('kth no cargado')
+        try:
+            x_train=np.load('/home/vision/Documentos/kth_img_train'+version+'.npy')
+            y_train=np.load('/home/vision/Documentos/kth_lab_train'+version+'.npy')
+            with tf.Session() as sess:
+                y_train=sess.run(tf.one_hot(y_train,10))
+        except:
+            print('kth no cargado')
+        try:
+            x_test=np.load('/home/vision/Documentos/kth_img_test'+version+'.npy')
+            y_test=np.load('/home/vision/Documentos/kth_lab_test'+version+'.npy')
+            with tf.Session() as sess:
+                y_test=sess.run(tf.one_hot(y_test,10))
+            print('x_train shape:', x_train.shape)
+            print(x_train.shape[0], 'train samples')
+            print(x_test.shape[0], 'test samples')
+        except:
+            print('kth no cargado')
         model = CapsNetv1(input_shape=[200,200, 3],
                             n_class=num_classes,
                             n_route=3,kth=True)
