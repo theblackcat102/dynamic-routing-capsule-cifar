@@ -5,7 +5,7 @@ from keras.layers.advanced_activations import LeakyReLU
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = False
-config.gpu_options.per_process_gpu_memory_fraction = 1
+config.gpu_options.per_process_gpu_memory_fraction =0.8
 set_session(tf.Session(config=config))
 import sys
 from sklearn.metrics import confusion_matrix
@@ -152,7 +152,7 @@ def margin_loss(y_true, y_pred):
 
     return K.mean(K.sum(L, 1))
 
-def train(epochs,batch_size,mode,is_relu,has=True,version=''):
+def train(epochs,batch_size,mode,is_relu,has=True,version='',lear=0.01):
     mode=int(mode)
     if(mode==1):
         maske='Cifar10'
@@ -209,7 +209,7 @@ def train(epochs,batch_size,mode,is_relu,has=True,version=''):
 
     plot_model(model, to_file='models'+maske+'/capsule-net-'+str(num_classes)+'.png', show_shapes=True)
 
-    model.compile(optimizer=optimizers.Adam(lr=0.01),
+    model.compile(optimizer=optimizers.Adam(lr=lear),
                   loss=[margin_loss, 'mse'],
                   loss_weights=[1., 0.1],
                   metrics={'output_recon':'accuracy','output':'accuracy'})
