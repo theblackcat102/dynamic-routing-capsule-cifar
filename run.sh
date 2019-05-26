@@ -1,7 +1,13 @@
+clear
+ls -alh
 echo borrar todo
 rm -rvf results*
+rm -rvf resultsKTH/
 rm -rvf weightsKTH/*.h5
 echo simple train
+clear
+ls -alh
+echo begin
 python3 main.py --epocs 100 --dataset 5
 zip -r resultsKTH_relu.zip resultsKTH/
 rm -rvf resultsKTH/

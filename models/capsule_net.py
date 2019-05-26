@@ -5,7 +5,7 @@ from keras.layers.advanced_activations import LeakyReLU
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = False
-config.gpu_options.per_process_gpu_memory_fraction =0.8
+config.gpu_options.per_process_gpu_memory_fraction =0.9
 set_session(tf.Session(config=config))
 import sys
 from sklearn.metrics import confusion_matrix
@@ -204,10 +204,10 @@ def train(epochs,batch_size,mode,is_relu,has=True,version='',lear=0.01):
     tb = callbacks.TensorBoard(log_dir='results'+maske+'/tensorboard-capsule-net-'+str(num_classes)+'-logs',
                                batch_size=batch_size, histogram_freq=True)
     checkpoint = callbacks.ModelCheckpoint('weights'+maske+'/capsule-net-'+str(num_classes)+'weights-{epoch:02d}.h5',
-                                           save_best_only=False, save_weights_only=True, verbose=1)
+                                           save_best_only=True, save_weights_only=True, verbose=1)
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: 0.001 * np.exp(-epoch / 10.))
 
-    plot_model(model, to_file='models'+maske+'/capsule-net-'+str(num_classes)+'.png', show_shapes=True)
+    plot_model(model, to_file='models'+maske+'/capsule-net-'+str(num_classes)+'_'+maske+'.png', show_shapes=True)
 
     model.compile(optimizer=optimizers.Adam(lr=lear),
                   loss=[margin_loss, 'mse'],
@@ -225,6 +225,8 @@ def train(epochs,batch_size,mode,is_relu,has=True,version='',lear=0.01):
                         callbacks=[log,tb,checkpoint,lr_decay])
     stop=t.time()
     timed(stop-start)
+    pass
+
 
 def test(epoch, mode=1,version='',best_model_name='.'):
     epoch=int(epoch)
@@ -277,7 +279,7 @@ def test(epoch, mode=1,version='',best_model_name='.'):
             model.load_weights(model_path)
             print('model path '+model_path)
             print("Weights loaded, start validation con epoch "+str(epoch))
-            y_pred, x_recon = model.predict([x_test, y_test], batch_size=100)
+            y_pred, x_recon = model.predict([x_test, y_test], batch_size=128)
             ac=np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))/y_test.shape[0]
             accuracy.append(ac)
             conf_matrix.append(confusion_matrix(y_true=np.argmax(y_test, 1), y_pred=np.argmax(y_pred, 1)))
