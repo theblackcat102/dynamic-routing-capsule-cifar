@@ -204,7 +204,7 @@ def train(epochs,batch_size,mode,is_relu,has=True,version='',lear=0.01):
     tb = callbacks.TensorBoard(log_dir='results'+maske+'/tensorboard-capsule-net-'+str(num_classes)+'-logs',
                                batch_size=batch_size, histogram_freq=True)
     checkpoint = callbacks.ModelCheckpoint('weights'+maske+'/capsule-net-'+str(num_classes)+'weights-{epoch:02d}.h5',
-                                           save_best_only=True, save_weights_only=True, verbose=1)
+                                           save_best_only=False, save_weights_only=True, verbose=1)
     lr_decay = callbacks.LearningRateScheduler(schedule=lambda epoch: 0.001 * np.exp(-epoch / 10.))
 
     plot_model(model, to_file='models'+maske+'/capsule-net-'+str(num_classes)+'_'+maske+'.png', show_shapes=True)
@@ -220,7 +220,7 @@ def train(epochs,batch_size,mode,is_relu,has=True,version='',lear=0.01):
     start=t.time()
     model.fit_generator(generator,
                         steps_per_epoch=x_train.shape[0] // batch_size,
-                        validation_data=([x_test, y_test], [y_test, x_test]),
+                        validation_data=([x_test[0:10], y_test[0:10]], [y_test[0:10], x_test[0:10]]),
                         epochs=int(epochs), verbose=1, max_q_size=100,
                         callbacks=[log,tb,checkpoint,lr_decay])
     stop=t.time()
@@ -228,7 +228,7 @@ def train(epochs,batch_size,mode,is_relu,has=True,version='',lear=0.01):
     pass
 
 
-def test(epoch, mode=1,version='',best_model_name='.'):
+def test(epoch,batch_size, mode=1,version='',best_model_name='.'):
     epoch=int(epoch)
     from PIL import Image
     from utils.helper_function import combine_images
@@ -279,15 +279,16 @@ def test(epoch, mode=1,version='',best_model_name='.'):
             model.load_weights(model_path)
             print('model path '+model_path)
             print("Weights loaded, start validation con epoch "+str(epoch))
-            y_pred, x_recon = model.predict([x_test, y_test], batch_size=128)
+            y_pred, x_recon = model.predict([x_test, y_test], batch_size=batch_size)
             ac=np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))/y_test.shape[0]
             accuracy.append(ac)
             conf_matrix.append(confusion_matrix(y_true=np.argmax(y_test, 1), y_pred=np.argmax(y_pred, 1)))
             print('Test acc:',ac)  
+            print(x_recon.shape)
         except:
             print('not saver epoch '+str(epoch))
             pass
-        if((epoch/epochs)>10):
+        if(epoch==epochs):
             img = combine_images(np.concatenate([x_test[:50],x_recon[:50]]))
             image = img*255
             Image.fromarray(image.astype(np.uint8)).save('results'+maske+'/real_and_recon_'+str(epoch+1)+'.png')

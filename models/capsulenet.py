@@ -66,17 +66,43 @@ def CapsNet(input_shape, n_class, n_route,kth=False,is_relu=True,has=True):
     if(kth):
         if(has):
             if(is_relu):
-                x_recon = layers.Conv2DTranspose(filters=256, kernel_size=5, strides=(3, 3), activation='relu')(x_recon)
-                x_recon = layers.Conv2DTranspose(filters=3, kernel_size=6, strides=(2, 2), activation='relu')(x_recon)
+                print(x_recon)
+                x_recon = layers.Conv2DTranspose(filters=128, kernel_size=5, strides=(3, 3), activation='relu')(x_recon)
+                x_recon = layers.Conv2DTranspose(filters=32, kernel_size=6, strides=(2, 2), activation='relu')(x_recon)
+                
+                #x_recon = layers.Conv2DTranspose(filters=32, kernel_size=5, strides=(1, 1), activation='relu')(x_recon)
+                #x_recon = layers.Conv2DTranspose(filters=32, kernel_size=5, strides=(3, 3), activation='relu')(x_recon)
+                
+                #x_recon = layers.Conv2D(filters=32, kernel_size=5, strides=(3,3), activation='relu')(x_recon)
+                #x_recon = layers.Conv2D(filters=3, kernel_size=5, strides=(1,1), activation='relu')(x_recon)
+                
             else:
                 x_recon = layers.Conv2DTranspose(filters=256, kernel_size=5, strides=(3, 3))(x_recon)
                 x_recon=LeakyReLU(0.2)(x_recon)
-                x_recon = layers.Conv2DTranspose(filters=3, kernel_size=6, strides=(2, 2))(x_recon)
+                x_recon = layers.Conv2DTranspose(filters=32, kernel_size=6, strides=(2, 2))(x_recon)
                 x_recon=LeakyReLU(0.2)(x_recon)
+                
+                
+                #x_recon = layers.Conv2DTranspose(filters=32, kernel_size=5, strides=(1 ,1))(x_recon)
+                #x_recon=LeakyReLU(0.2)(x_recon)
+                #x_recon = layers.Conv2DTranspose(filters=32, kernel_size=5, strides=(3, 3))(x_recon)
+                #x_recon=LeakyReLU(0.2)(x_recon)
+                
+                #x_recon = layers.Conv2D(filters=32, kernel_size=5, strides=(3,3))(x_recon)
+                #x_recon=LeakyReLU(0.2)(x_recon)
+                #x_recon = layers.Conv2D(filters=3, kernel_size=5, strides=(1,1))(x_recon)
+                #x_recon=LeakyReLU(0.2)(x_recon)
+                
                 pass
         else:
-            x_recon = layers.Conv2DTranspose(filters=256, kernel_size=5, strides=(3, 3))(x_recon)
-            x_recon = layers.Conv2DTranspose(filters=3, kernel_size=6, strides=(2, 2))(x_recon)
+            x_recon = layers.Conv2DTranspose(filters=128, kernel_size=5, strides=(3, 3))(x_recon)
+            x_recon = layers.Conv2DTranspose(filters=32, kernel_size=6, strides=(2, 2))(x_recon)
+
+            #x_recon = layers.Conv2DTranspose(filters=32, kernel_size=5, strides=(1 ,1))(x_recon)
+            #x_recon = layers.Conv2DTranspose(filters=32, kernel_size=5, strides=(3, 3))(x_recon)
+            
+            #x_recon = layers.Conv2D(filters=32, kernel_size=5, strides=(3,3))(x_recon)
+            #x_recon = layers.Conv2D(filters=3, kernel_size=5, strides=(1,1))(x_recon)
     print(x_recon)
     
     #x_recon=tf.layers.conv2d_transpose(x_recon,kernel_size=5,strides=3,filters=256)

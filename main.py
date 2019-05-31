@@ -1,5 +1,5 @@
 from models.capsule_net import train as capsule_train
-#from models.capsule_net import test as capsule_test
+from models.capsule_net import test as capsule_test
 #from models.resnet import train as resnet_train
 #from utils.helper_function import plot_log
 import os
@@ -14,6 +14,7 @@ arguments.add_argument('--dataset',default=1,type=int)
 arguments.add_argument('--is_relu',default=1,type=int)
 arguments.add_argument('--has',default=1,type=int)
 arguments.add_argument('--version',default='')
+arguments.add_argument('--lear_rate',default=0.01)
 
 
 def save_best_model(mode=None,
@@ -37,6 +38,7 @@ if __name__ == "__main__":
     # # resnet_train()
     epochs=arg.epocs
     is_relu=bool(arg.is_relu)
+    lear_rate=float(arg.lear_rate)
     batch_size=int(arg.batch_size)
     dataset=arg.dataset
     has=bool(arg.has)
@@ -46,7 +48,8 @@ if __name__ == "__main__":
                   mode=dataset,
                   is_relu=is_relu,
                   has=has,
-                  version=version)
+                  version=version,
+                  lear=lear_rate)
     if(int(dataset)==1):
         maske='Cifar10'
     else:
@@ -61,8 +64,10 @@ if __name__ == "__main__":
     else:
         best_model_name=maske+version+'.h5'
     print(best_model_name)
-    '''
-    capsule_test(epochs,dataset,
+    
+    capsule_test(epoch=epochs,
+                 batch_size=batch_size,
+                 mode=dataset,
                  version=version,
                  best_model_name=best_model_name)
     #plot_log("results/resnet-cifar-10-log.csv")
@@ -71,3 +76,4 @@ if __name__ == "__main__":
     save_best_model(mode=dataset,
                     version=version,
                     best_model_name=best_model_name)
+    '''
