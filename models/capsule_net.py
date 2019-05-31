@@ -276,6 +276,7 @@ def test(epoch,batch_size, mode=1,version='',best_model_name='.'):
     for epoch in range(1,epochs+1):
         try:
             model_path='weights'+maske+'/capsule-net-'+str(num_classes)+'weights-{:02d}.h5'.format(epoch)
+            print(model_path)
             model.load_weights(model_path)
             print('model path '+model_path)
             print("Weights loaded, start validation con epoch "+str(epoch))
@@ -285,7 +286,8 @@ def test(epoch,batch_size, mode=1,version='',best_model_name='.'):
             conf_matrix.append(confusion_matrix(y_true=np.argmax(y_test, 1), y_pred=np.argmax(y_pred, 1)))
             print('Test acc:',ac)  
             print(x_recon.shape)
-        except:
+        except Exception as ex:
+            print(ex)
             print('not saver epoch '+str(epoch))
             pass
         if(epoch==epochs):
