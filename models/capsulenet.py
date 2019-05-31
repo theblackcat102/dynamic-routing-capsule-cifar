@@ -68,7 +68,7 @@ def CapsNet(input_shape, n_class, n_route,kth=False,is_relu=True,has=True):
             if(is_relu):
                 print(x_recon)
                 x_recon = layers.Conv2DTranspose(filters=128, kernel_size=5, strides=(3, 3), activation='relu')(x_recon)
-                x_recon = layers.Conv2DTranspose(filters=32, kernel_size=6, strides=(2, 2), activation='relu')(x_recon)
+                x_recon = layers.Conv2DTranspose(filters=3, kernel_size=6, strides=(2, 2), activation='relu')(x_recon)
                 
                 #x_recon = layers.Conv2DTranspose(filters=32, kernel_size=5, strides=(1, 1), activation='relu')(x_recon)
                 #x_recon = layers.Conv2DTranspose(filters=32, kernel_size=5, strides=(3, 3), activation='relu')(x_recon)
@@ -79,7 +79,7 @@ def CapsNet(input_shape, n_class, n_route,kth=False,is_relu=True,has=True):
             else:
                 x_recon = layers.Conv2DTranspose(filters=256, kernel_size=5, strides=(3, 3))(x_recon)
                 x_recon=LeakyReLU(0.2)(x_recon)
-                x_recon = layers.Conv2DTranspose(filters=32, kernel_size=6, strides=(2, 2))(x_recon)
+                x_recon = layers.Conv2DTranspose(filters=3, kernel_size=6, strides=(2, 2))(x_recon)
                 x_recon=LeakyReLU(0.2)(x_recon)
                 
                 
@@ -96,7 +96,7 @@ def CapsNet(input_shape, n_class, n_route,kth=False,is_relu=True,has=True):
                 pass
         else:
             x_recon = layers.Conv2DTranspose(filters=128, kernel_size=5, strides=(3, 3))(x_recon)
-            x_recon = layers.Conv2DTranspose(filters=32, kernel_size=6, strides=(2, 2))(x_recon)
+            x_recon = layers.Conv2DTranspose(filters=3, kernel_size=6, strides=(2, 2))(x_recon)
 
             #x_recon = layers.Conv2DTranspose(filters=32, kernel_size=5, strides=(1 ,1))(x_recon)
             #x_recon = layers.Conv2DTranspose(filters=32, kernel_size=5, strides=(3, 3))(x_recon)
