@@ -319,8 +319,8 @@ def test_model(model_path,dataset_path,save_path):
     ac=np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))/y_test.shape[0]
     print(ac)
     cnf=confusion_matrix(y_true=np.argmax(y_test, 1), y_pred=np.argmax(y_pred, 1))
-    np.save(file=save_path+'/acc',ac)
-    np.save(file=save_path+'/cnf',cnf)
+    np.save(file=save_path+'/acc',arr=ac)
+    np.save(file=save_path+'/cnf',arr=cnf)
     img = combine_images(np.concatenate([x_test[:50],x_recon[:50]]))
     Image.fromarray((img*255).astype(np.uint8)).save(save_path+'/results.png')
     pass
