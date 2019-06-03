@@ -303,9 +303,27 @@ def test(epoch,batch_size, mode=1,version='',best_model_name='.'):
               dst='modelsKTH/'+best_model_name)
     np.save('results'+maske+'/acc',accuracy)
     np.save('results'+maske+'/cnf',conf_matrix)
-    
-    
-    
+
+
+def test_model(model_path,dataset_path,save_path):
+    from PIL import Image
+    from utils.helper_function import combine_images
+    x_test=np.load(dataset_path['Images'])
+    y_test=np.load(dataset_path['Labels'])
+    model = CapsNetv1(input_shape=[200,200, 3],
+                      n_class=10,
+                      n_route=3,
+                      kth=True)
+    model.load_weights(filepath=model_path)
+    y_pred, x_recon = model.predict([x_test, y_test], batch_size=128)
+    ac=np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))/y_test.shape[0]
+    print(ac)
+    cnf=confusion_matrix(y_true=np.argmax(y_test, 1), y_pred=np.argmax(y_pred, 1))
+    np.save(file=save_path+'/acc',ac)
+    np.save(file=save_path+'/cnf',cnf)
+    img = combine_images(np.concatenate([x_test[:50],x_recon[:50]]))
+    Image.fromarray((img*255).astype(np.uint8)).save(save_path+'/results.png')
+    pass
     
     
     
