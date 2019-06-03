@@ -280,7 +280,7 @@ def test(epoch,batch_size, mode=1,version='',best_model_name='.'):
             model.load_weights(model_path)
             print('model path '+model_path)
             print("Weights loaded, start validation con epoch "+str(epoch))
-            y_pred, x_recon = model.predict([x_test, y_test], batch_size=batch_size)
+            y_pred, x_recon = model.predict([x_test, y_test], batch_size=256)
             ac=np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))/y_test.shape[0]
             accuracy.append(ac)
             conf_matrix.append(confusion_matrix(y_true=np.argmax(y_test, 1), y_pred=np.argmax(y_pred, 1)))
