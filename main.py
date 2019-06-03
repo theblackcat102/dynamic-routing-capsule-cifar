@@ -94,5 +94,5 @@ if __name__ == "__main__":
         lab=dataset_path+'/'+'KTH-b-Test-lab.npy'
         dataset={'Images':img,'Labels':lab}
         test_model(model_path=model_dir,
-                   dataset_path,
+                   dataset_path=dataset,
                    save_path=save_path)
