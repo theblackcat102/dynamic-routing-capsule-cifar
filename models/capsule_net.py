@@ -310,6 +310,8 @@ def test_model(model_path,dataset_path,save_path):
     from utils.helper_function import combine_images
     x_test=np.load(dataset_path['Images'])
     y_test=np.load(dataset_path['Labels'])
+    with tf.Session() as sess:
+        y_test=sess.run(tf.one_hot(y_test,10))
     model = CapsNetv1(input_shape=[200,200, 3],
                       n_class=10,
                       n_route=3,
