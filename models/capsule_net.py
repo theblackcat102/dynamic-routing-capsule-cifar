@@ -175,19 +175,19 @@ def train(epochs,batch_size,mode,is_relu,has=True,version='',lear=0.01):
         print(x_train.shape[0], 'train samples')
         print(x_test.shape[0], 'test samples')
     else:
-        num_classes = 10
+        num_classes = 11
         try:
             x_train=np.load('/home/vision/Documentos/kth_img_train'+version+'.npy')
             y_train=np.load('/home/vision/Documentos/kth_lab_train'+version+'.npy')
             with tf.Session() as sess:
-                y_train=sess.run(tf.one_hot(y_train,10))
+                y_train=sess.run(tf.one_hot(y_train,num_classes))
         except:
             print('kth no cargado')
         try:
             x_test=np.load('/home/vision/Documentos/kth_img_test'+version+'.npy')
             y_test=np.load('/home/vision/Documentos/kth_lab_test'+version+'.npy')
             with tf.Session() as sess:
-                y_test=sess.run(tf.one_hot(y_test,10))
+                y_test=sess.run(tf.one_hot(y_test,num_classes))
             print('x_train shape:', x_train.shape)
             print(x_train.shape[0], 'train samples')
             print(x_test.shape[0], 'test samples')
@@ -246,19 +246,19 @@ def test(epoch,batch_size, mode=1,version='',best_model_name='.'):
         print(x_train.shape[0], 'train samples')
         print(x_test.shape[0], 'test samples')
     else:
-        num_classes = 10
+        num_classes = 11
         try:
             x_train=np.load('/home/vision/Documentos/kth_img_train'+version+'.npy')
             y_train=np.load('/home/vision/Documentos/kth_lab_train'+version+'.npy')
             with tf.Session() as sess:
-                y_train=sess.run(tf.one_hot(y_train,10))
+                y_train=sess.run(tf.one_hot(y_train,num_classes))
         except:
             print('kth no cargado')
         try:
             x_test=np.load('/home/vision/Documentos/kth_img_test'+version+'.npy')
             y_test=np.load('/home/vision/Documentos/kth_lab_test'+version+'.npy')
             with tf.Session() as sess:
-                y_test=sess.run(tf.one_hot(y_test,10))
+                y_test=sess.run(tf.one_hot(y_test,num_classes))
             print('x_train shape:', x_train.shape)
             print(x_train.shape[0], 'train samples')
             print(x_test.shape[0], 'test samples')
@@ -310,10 +310,11 @@ def test_model(model_path,dataset_path,save_path):
     from utils.helper_function import combine_images
     x_test=np.load(dataset_path['Images'])
     y_test=np.load(dataset_path['Labels'])
+    num_classes=11
     with tf.Session() as sess:
-        y_test=sess.run(tf.one_hot(y_test,10))
+        y_test=sess.run(tf.one_hot(y_test,num_classes))
     model = CapsNetv1(input_shape=[200,200, 3],
-                      n_class=11,
+                      n_class=num_classes,
                       n_route=3,
                       kth=True)
     model.load_weights(filepath=model_path)
