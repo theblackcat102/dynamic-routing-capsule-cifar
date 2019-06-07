@@ -318,7 +318,7 @@ def test_model(model_path,dataset_path,save_path):
     from PIL import Image
     from utils.helper_function import combine_images
     x_test=np.load(dataset_path['Images'])
-        y_test=np.load(dataset_path['Labels'])
+    y_test=np.load(dataset_path['Labels'])
     num_classes=11
     with tf.Session() as sess:
         y_test=sess.run(tf.one_hot(y_test,num_classes))
