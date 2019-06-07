@@ -1,6 +1,7 @@
 import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
 from keras.layers.advanced_activations import LeakyReLU
+import gc
 
 
 config = tf.ConfigProto()
@@ -272,8 +273,10 @@ def test(epoch,batch_size, mode=1,version='',best_model_name='.'):
     print(maske)
     print(mode)
     conf_matrix=[]
+    images=[]
     epochs=epoch
     for epoch in range(1,epochs+1):
+        index=np.random.randint(0,x_test.shape[0]-1,10)
         try:
             model_path='weights'+maske+'/capsule-net-'+str(num_classes)+'weights-{:02d}.h5'.format(epoch)
             print(model_path)
@@ -284,6 +287,7 @@ def test(epoch,batch_size, mode=1,version='',best_model_name='.'):
             ac=np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))/y_test.shape[0]
             accuracy.append(ac)
             conf_matrix.append(confusion_matrix(y_true=np.argmax(y_test, 1), y_pred=np.argmax(y_pred, 1)))
+            images.append([x_test[index],x_recon[index]])
             print('Test acc:',ac)  
             print(x_recon.shape)
         except Exception as ex:
@@ -294,7 +298,11 @@ def test(epoch,batch_size, mode=1,version='',best_model_name='.'):
             img = combine_images(np.concatenate([x_test[:50],x_recon[:50]]))
             image = img*255
             Image.fromarray(image.astype(np.uint8)).save('results'+maske+'/real_and_recon_'+str(epoch+1)+'.png')
+        y_pred=None
+        x_recon=None
+        gc.collect()
         pass
+    images=np.array(images)
     accuracy=np.array(accuracy)
     conf_matrix=np.array(conf_matrix)
     best_ecpoch=np.argmax(accuracy)+1
@@ -302,6 +310,7 @@ def test(epoch,batch_size, mode=1,version='',best_model_name='.'):
     os.rename(src=best_model_path,
               dst='modelsKTH/'+best_model_name)
     np.save('results'+maske+'/acc',accuracy)
+    np.save('results'+maske+'/images',images)
     np.save('results'+maske+'/cnf',conf_matrix)
 
 
@@ -309,7 +318,7 @@ def test_model(model_path,dataset_path,save_path):
     from PIL import Image
     from utils.helper_function import combine_images
     x_test=np.load(dataset_path['Images'])
-    y_test=np.load(dataset_path['Labels'])
+        y_test=np.load(dataset_path['Labels'])
     num_classes=11
     with tf.Session() as sess:
         y_test=sess.run(tf.one_hot(y_test,num_classes))
